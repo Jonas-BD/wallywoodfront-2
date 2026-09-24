@@ -1,28 +1,51 @@
 import { useEffect, useState } from "react";
 
-export const useFetch = <T>(url: string) => {
-    const [data, setData] = useState<T>();
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>();
+type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
+
+export const useFetch = <T,>(
+    url: string,
+    method: HttpMethod = "GET",
+    token?: string | null
+) => {
+    const [data, setData] = useState<T | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
-            setIsLoading(true);
-
             try {
-                const res = await fetch(url);
-                const data = await res.json();
-                setData(data);
-                setIsLoading(false);
-            } catch (error) {
-                if (error instanceof Error) {
-                    setError(error.message)
-                    console.error('Fetch failed: ', error.message);
-                } else throw error
-            }
-        }
-        fetchData();
-    }, [url])
+                const response = await fetch(url, {
+                    method,
+                    headers: {
+                        ...(method !== "GET" && {
+                            "Content-Type": "application/json"
+                        }),
 
-    return { data, isLoading, error };
-}
+                        ...(token && {
+                            Authorization: `Bearer ${token}`
+                        })
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        `${response.status} ${response.statusText}`
+                    );
+                }
+
+                const result: T = await response.json();
+
+                setData(result);
+
+            } catch (err) {
+                if (err instanceof Error) {
+                    setError(err.message);
+                }
+            }
+        };
+
+        fetchData();
+
+    }, [url, method, token]);
+
+    return { data, error };
+};

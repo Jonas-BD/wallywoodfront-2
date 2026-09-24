@@ -1,7 +1,11 @@
+import { Nav } from "../Nav/Nav"
+import { HeaderStyled } from "./Header.styled"
+
 export const Header = () => {
   return (
-    <div>
-      <h2>Header</h2>
-    </div>
+    <HeaderStyled>
+      <h1>WALLYWOOD</h1>
+      <Nav />
+    </HeaderStyled>
   )
 }
